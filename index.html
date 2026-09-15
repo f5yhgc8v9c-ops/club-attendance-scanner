@@ -71,6 +71,15 @@
       color: white;
     }
 
+    #finishButton {
+      background: #2e7d32;
+      color: white;
+    }
+
+    #finishButton:disabled {
+      opacity: 0.5;
+    }
+
     #clearButton {
       background: #eee;
     }
@@ -146,6 +155,13 @@
 
   <div id="reader"></div>
 
+  <button
+  id="finishButton"
+  onclick="finishScanning()">
+
+  読み取り終了・出席登録へ進む
+
+  </button>
 
   <button
     id="clearButton"
@@ -222,6 +238,13 @@ const hasScanSession =
 // QRスキャナー
 // ========================
 
+  // ========================
+// GAS Webアプリ
+// ========================
+
+const GAS_WEB_APP_URL =
+  'https://script.google.com/a/macros/nodai3.education/s/AKfycbz2wqW8G_pCx30zS1zs8lUDdOHSyuiyTbTPmWqbwtFQ8iFDur2fFOlqdko6NFxV3r9Fyg/exec';
+  
 let scanner = null;
 
 let scannerStarted = false;
@@ -633,6 +656,89 @@ function updateDisplay() {
 // 読み取り結果消去
 // ========================
 
+function finishScanning() {
+
+  if (
+    scannedStudents.length === 0
+  ) {
+
+    alert(
+      'まだQRコードが読み取られていません。'
+    );
+
+    return;
+  }
+
+
+  const ok =
+    confirm(
+      scannedStudents.length +
+      '人の読み取りを終了し、\n' +
+      '出席登録確認画面へ進みますか？'
+    );
+
+
+  if (!ok) {
+    return;
+  }
+
+
+  // ========================
+  // GASへ渡すID一覧
+  // ========================
+
+  const ids =
+    scannedStudents.join(',');
+
+
+  const url =
+    GAS_WEB_APP_URL +
+    '?page=batchattendance' +
+    '&ids=' +
+    encodeURIComponent(ids);
+
+
+  // ========================
+  // カメラ停止後にGASへ移動
+  // ========================
+
+  if (
+    scanner &&
+    scannerStarted
+  ) {
+
+    scanner
+      .stop()
+      .then(
+        function() {
+
+          window.location.href =
+            url;
+
+        }
+      )
+      .catch(
+        function() {
+
+          // カメラ停止に失敗しても
+          // GASへの移動は行う
+
+          window.location.href =
+            url;
+
+        }
+      );
+
+  }
+
+  else {
+
+    window.location.href =
+      url;
+
+  }
+}
+  
 function clearScans() {
 
   if (
