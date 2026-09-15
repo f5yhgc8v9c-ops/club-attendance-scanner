@@ -153,6 +153,51 @@
 
 <script>
 
+let scanSessionToken = '';
+
+
+// ========================
+// GASから渡された
+// 一時セッションを取得
+// ========================
+
+function loadScanSession() {
+
+  const hash =
+    window.location.hash;
+
+  const params =
+    new URLSearchParams(
+      hash.startsWith('#')
+        ? hash.substring(1)
+        : hash
+    );
+
+
+  scanSessionToken =
+    String(
+      params.get('session') || ''
+    ).trim();
+
+
+  // URL欄からセッション情報を消す
+  if (scanSessionToken) {
+
+    history.replaceState(
+      null,
+      '',
+      window.location.pathname
+    );
+  }
+
+
+  return !!scanSessionToken;
+}
+
+
+const hasScanSession =
+  loadScanSession();
+  
 let scanner = null;
 
 let scannerStarted = false;
@@ -415,6 +460,21 @@ function onScanSuccess(
   );
 }
 
+if (!hasScanSession) {
+
+  document
+    .getElementById('message')
+    .textContent =
+    'GASの出席管理画面から' +
+    'QRスキャナーを開始してください。';
+
+
+  document
+    .getElementById('startButton')
+    .disabled = true;
+
+}
+  
 </script>
 
 </body>
