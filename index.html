@@ -2,6 +2,7 @@
 <html lang="ja">
 
 <head>
+
   <meta charset="UTF-8">
 
   <meta
@@ -9,24 +10,128 @@
     content="width=device-width, initial-scale=1">
 
   <title>
-    QRスキャナーテスト
+    カメラテスト
   </title>
+
+  <style>
+
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 26px;
+    }
+
+    button {
+      width: 100%;
+      max-width: 500px;
+      padding: 18px;
+      margin: 20px 0;
+      font-size: 20px;
+    }
+
+    video {
+      width: 100%;
+      max-width: 600px;
+      background: #000;
+      border-radius: 12px;
+    }
+
+    #message {
+      margin: 15px 0;
+      font-size: 18px;
+      white-space: pre-line;
+    }
+
+  </style>
+
 </head>
 
 <body>
 
   <h1>
-    QRスキャナーテスト
+    カメラ起動テスト
   </h1>
 
   <p>
-    この画面が表示されれば、
-    GitHub Pagesへのアクセスは成功です。
+    下のボタンを押してください。
   </p>
 
-  <p>
-    次の段階でカメラテストを行います。
-  </p>
+  <button onclick="startCamera()">
+    カメラを開始
+  </button>
+
+  <div id="message">
+    カメラはまだ起動していません。
+  </div>
+
+  <video
+    id="video"
+    autoplay
+    playsinline>
+  </video>
+
+
+  <script>
+
+    async function startCamera() {
+
+      const message =
+        document.getElementById(
+          'message'
+        );
+
+      const video =
+        document.getElementById(
+          'video'
+        );
+
+
+      message.textContent =
+        'カメラを起動しています...';
+
+
+      try {
+
+        const stream =
+          await navigator.mediaDevices
+            .getUserMedia({
+
+              video: {
+                facingMode:
+                  'environment'
+              },
+
+              audio: false
+            });
+
+
+        video.srcObject =
+          stream;
+
+
+        message.textContent =
+          'カメラを起動できました。';
+
+      }
+
+      catch (error) {
+
+        message.textContent =
+          'カメラを起動できませんでした。\n' +
+          error.name +
+          '\n' +
+          error.message;
+
+        console.error(error);
+      }
+    }
+
+  </script>
 
 </body>
 
