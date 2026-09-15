@@ -10,7 +10,7 @@
     content="width=device-width, initial-scale=1">
 
   <title>
-    QR読み取りテスト
+    部活動 QR出席スキャナー
   </title>
 
   <script
@@ -21,10 +21,7 @@
 
     body {
       margin: 0;
-      font-family:
-        Arial,
-        sans-serif;
-
+      font-family: sans-serif;
       background: #f4f6f8;
       color: #222;
     }
@@ -37,23 +34,36 @@
 
     h1 {
       text-align: center;
-      font-size: 26px;
+      font-size: 25px;
     }
 
-    #reader {
-      width: 100%;
+    .status {
+      padding: 15px;
+      margin-bottom: 15px;
       background: white;
       border-radius: 12px;
-      overflow: hidden;
+      text-align: center;
+    }
+
+    #count {
+      font-size: 34px;
+      font-weight: bold;
+    }
+
+    #message {
+      margin-top: 8px;
+      font-size: 18px;
+      font-weight: bold;
+      white-space: pre-line;
     }
 
     button {
       width: 100%;
-      padding: 18px;
-      margin-bottom: 15px;
+      padding: 17px;
+      margin-bottom: 12px;
       border: none;
       border-radius: 10px;
-      font-size: 20px;
+      font-size: 19px;
     }
 
     #startButton {
@@ -61,40 +71,37 @@
       color: white;
     }
 
-    .message {
-      min-height: 60px;
-      margin-top: 15px;
+    #clearButton {
+      background: #eee;
+    }
+
+    #reader {
+      width: 100%;
+      margin-bottom: 15px;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .listBox {
+      background: white;
+      border-radius: 12px;
       padding: 15px;
-      background: white;
-      border-radius: 12px;
-      text-align: center;
-      font-size: 20px;
+    }
+
+    .listTitle {
       font-weight: bold;
-      white-space: pre-line;
-    }
-
-    .result {
-      margin-top: 15px;
-      padding: 20px;
-      background: white;
-      border-radius: 12px;
-      text-align: center;
-    }
-
-    .result-title {
-      font-size: 14px;
-      color: #666;
       margin-bottom: 10px;
     }
 
-    #resultText {
-      font-size: 30px;
-      font-weight: bold;
+    #scanList {
+      margin: 0;
+      padding-left: 25px;
     }
 
-    #count {
-      margin-top: 10px;
-      font-size: 16px;
+    #scanList li {
+      padding: 7px 0;
+      font-size: 18px;
     }
 
   </style>
@@ -107,8 +114,25 @@
 <div class="container">
 
   <h1>
-    QR読み取りテスト
+    部活動 QR出席スキャナー
   </h1>
+
+
+  <div class="status">
+
+    <div>
+      読み取り人数
+    </div>
+
+    <div id="count">
+      0人
+    </div>
+
+    <div id="message">
+      「カメラを開始」を押してください。
+    </div>
+
+  </div>
 
 
   <button
@@ -123,28 +147,22 @@
   <div id="reader"></div>
 
 
-  <div
-    id="message"
-    class="message">
+  <button
+    id="clearButton"
+    onclick="clearScans()">
 
-    「カメラを開始」を押してください。
+    読み取り結果をすべて消去
 
-  </div>
+  </button>
 
 
-  <div class="result">
+  <div class="listBox">
 
-    <div class="result-title">
-      最後に読み取ったQR
+    <div class="listTitle">
+      読み取り済み生徒ID
     </div>
 
-    <div id="resultText">
-      ―
-    </div>
-
-    <div id="count">
-      読み取り回数：0
-    </div>
+    <ol id="scanList"></ol>
 
   </div>
 
@@ -153,13 +171,13 @@
 
 <script>
 
+// ========================
+// GASから受け取った
+// 一時セッション
+// ========================
+
 let scanSessionToken = '';
 
-
-// ========================
-// GASから渡された
-// 一時セッションを取得
-// ========================
 
 function loadScanSession() {
 
@@ -180,14 +198,15 @@ function loadScanSession() {
     ).trim();
 
 
-  // URL欄からセッション情報を消す
   if (scanSessionToken) {
 
+    // URL欄からtokenを消す
     history.replaceState(
       null,
       '',
       window.location.pathname
     );
+
   }
 
 
@@ -197,14 +216,89 @@ function loadScanSession() {
 
 const hasScanSession =
   loadScanSession();
-  
+
+
+// ========================
+// QRスキャナー
+// ========================
+
 let scanner = null;
 
 let scannerStarted = false;
 
-let scanningLocked = false;
 
-let readCount = 0;
+// 読み取った生徒ID
+let scannedStudents = [];
+
+
+// 同じQRの連続検出防止
+let lastDetectedId = '';
+
+let lastDetectedTime = 0;
+
+
+// ========================
+// 保存済みデータを復元
+// ========================
+
+function loadSavedScans() {
+
+  try {
+
+    const saved =
+      sessionStorage.getItem(
+        'clubAttendanceScans'
+      );
+
+
+    if (saved) {
+
+      const parsed =
+        JSON.parse(saved);
+
+
+      if (Array.isArray(parsed)) {
+
+        scannedStudents =
+          parsed.filter(
+            function(id) {
+
+              return /^N\d{5}$/.test(
+                String(id)
+              );
+
+            }
+          );
+
+      }
+
+    }
+
+  }
+  catch (error) {
+
+    scannedStudents = [];
+
+  }
+
+
+  updateDisplay();
+}
+
+
+// ========================
+// 端末内に保存
+// ========================
+
+function saveScans() {
+
+  sessionStorage.setItem(
+    'clubAttendanceScans',
+    JSON.stringify(
+      scannedStudents
+    )
+  );
+}
 
 
 // ========================
@@ -212,6 +306,20 @@ let readCount = 0;
 // ========================
 
 async function startScanner() {
+
+  if (!hasScanSession) {
+
+    document
+      .getElementById(
+        'message'
+      )
+      .textContent =
+      'GASの出席管理画面から\n' +
+      'QRスキャナーを開始してください。';
+
+    return;
+  }
+
 
   if (scannerStarted) {
     return;
@@ -234,14 +342,12 @@ async function startScanner() {
   button.textContent =
     'カメラを起動中...';
 
-  message.textContent =
-    'カメラを起動しています...';
-
 
   try {
 
     const cameras =
-      await Html5Qrcode.getCameras();
+      await Html5Qrcode
+        .getCameras();
 
 
     if (
@@ -252,6 +358,7 @@ async function startScanner() {
       throw new Error(
         '利用可能なカメラがありません。'
       );
+
     }
 
 
@@ -261,15 +368,13 @@ async function startScanner() {
       );
 
 
-    // 基本的に最後のカメラを使用
-    // iPhone / iPadでは背面カメラになることが多い
     let cameraId =
       cameras[
         cameras.length - 1
       ].id;
 
 
-    // カメラ名から背面を探す
+    // 背面カメラを探す
     for (
       let i = 0;
       i < cameras.length;
@@ -294,60 +399,62 @@ async function startScanner() {
 
         break;
       }
+
     }
-
-
-    const config = {
-
-      fps: 15,
-
-      qrbox: function(
-        viewfinderWidth,
-        viewfinderHeight
-      ) {
-
-        const size =
-          Math.min(
-            viewfinderWidth,
-            viewfinderHeight
-          ) * 0.65;
-
-
-        return {
-
-          width:
-            Math.floor(size),
-
-          height:
-            Math.floor(size)
-        };
-      },
-
-      aspectRatio: 1.0
-    };
 
 
     await scanner.start(
 
       cameraId,
 
-      config,
+      {
+
+        fps: 15,
+
+        qrbox: function(
+          width,
+          height
+        ) {
+
+          const size =
+            Math.min(
+              width,
+              height
+            ) * 0.65;
+
+
+          return {
+
+            width:
+              Math.floor(size),
+
+            height:
+              Math.floor(size)
+
+          };
+
+        }
+
+      },
 
       onScanSuccess,
 
       function() {
 
-        // QRが見つからない間の
-        // エラーは表示しない
+        // 読み取り失敗時は
+        // 何も表示しない
 
       }
+
     );
 
 
     scannerStarted = true;
 
+
     button.style.display =
       'none';
+
 
     message.textContent =
       'QRコードを読み取ってください。';
@@ -361,14 +468,15 @@ async function startScanner() {
     button.textContent =
       'カメラを開始';
 
+
     message.textContent =
       'カメラを開始できませんでした。\n' +
       error.name +
       '\n' +
       error.message;
 
-    console.error(error);
   }
+
 }
 
 
@@ -380,43 +488,15 @@ function onScanSuccess(
   decodedText
 ) {
 
-  if (scanningLocked) {
-    return;
-  }
-
-
-  scanningLocked = true;
-
-
-  const text =
+  const id =
     String(
-      decodedText
+      decodedText || ''
     ).trim();
 
 
-  readCount++;
-
-
-  document
-    .getElementById(
-      'resultText'
-    )
-    .textContent =
-    text;
-
-
-  document
-    .getElementById(
-      'count'
-    )
-    .textContent =
-    '読み取り回数：' +
-    readCount;
-
-
-  // 生徒ID形式の簡易確認
+  // 生徒ID形式ではない
   if (
-    /^N\d{5}$/.test(text)
+    !/^N\d{5}$/.test(id)
   ) {
 
     document
@@ -424,57 +504,266 @@ function onScanSuccess(
         'message'
       )
       .textContent =
-      '読み取り成功：' +
-      text;
+      '生徒用QRではありません。';
+
+    return;
+  }
+
+
+  const now =
+    Date.now();
+
+
+  // 同じQRをカメラが連続検出する
+  // 現象を防止
+  if (
+    id === lastDetectedId &&
+    now - lastDetectedTime < 2000
+  ) {
+
+    return;
 
   }
 
-  else {
+
+  lastDetectedId =
+    id;
+
+  lastDetectedTime =
+    now;
+
+
+  // ========================
+  // すでに読み取り済み
+  // ========================
+
+  if (
+    scannedStudents.includes(id)
+  ) {
 
     document
       .getElementById(
         'message'
       )
       .textContent =
-      'QRを読み取りました。\n' +
-      '生徒ID形式ではありません。';
+      id +
+      '\nすでに読み取り済みです。';
+
+    return;
   }
 
 
-  // 1.5秒後に次の読み取りを許可
-  setTimeout(
-    function() {
+  // ========================
+  // 新規読み取り
+  // ========================
 
-      scanningLocked =
-        false;
-
-      document
-        .getElementById(
-          'message'
-        )
-        .textContent =
-        '次のQRコードを読み取ってください。';
-
-    },
-    1500
+  scannedStudents.push(
+    id
   );
+
+
+  saveScans();
+
+  updateDisplay();
+
+
+  document
+    .getElementById(
+      'message'
+    )
+    .textContent =
+    id +
+    '\n読み取りました。';
+
+
+  // 読み取り成功音
+  playBeep();
+
 }
+
+
+// ========================
+// 画面更新
+// ========================
+
+function updateDisplay() {
+
+  document
+    .getElementById(
+      'count'
+    )
+    .textContent =
+    scannedStudents.length +
+    '人';
+
+
+  const list =
+    document.getElementById(
+      'scanList'
+    );
+
+
+  list.innerHTML = '';
+
+
+  scannedStudents
+    .slice()
+    .reverse()
+    .forEach(
+      function(id) {
+
+        const li =
+          document.createElement(
+            'li'
+          );
+
+        li.textContent =
+          id;
+
+        list.appendChild(
+          li
+        );
+
+      }
+    );
+}
+
+
+// ========================
+// 読み取り結果消去
+// ========================
+
+function clearScans() {
+
+  if (
+    scannedStudents.length === 0
+  ) {
+    return;
+  }
+
+
+  const ok =
+    confirm(
+      '読み取り済みの' +
+      scannedStudents.length +
+      '人をすべて消去しますか？'
+    );
+
+
+  if (!ok) {
+    return;
+  }
+
+
+  scannedStudents = [];
+
+
+  sessionStorage.removeItem(
+    'clubAttendanceScans'
+  );
+
+
+  updateDisplay();
+
+
+  document
+    .getElementById(
+      'message'
+    )
+    .textContent =
+    '読み取り結果を消去しました。';
+
+}
+
+
+// ========================
+// 簡易成功音
+// ========================
+
+function playBeep() {
+
+  try {
+
+    const AudioContext =
+      window.AudioContext ||
+      window.webkitAudioContext;
+
+
+    const context =
+      new AudioContext();
+
+
+    const oscillator =
+      context.createOscillator();
+
+
+    const gain =
+      context.createGain();
+
+
+    oscillator.connect(
+      gain
+    );
+
+    gain.connect(
+      context.destination
+    );
+
+
+    oscillator.frequency.value =
+      900;
+
+
+    gain.gain.value =
+      0.08;
+
+
+    oscillator.start();
+
+
+    oscillator.stop(
+      context.currentTime +
+      0.08
+    );
+
+  }
+
+  catch (error) {
+
+    // 音が鳴らなくても
+    // QR読み取りは継続する
+
+  }
+
+}
+
+
+// ========================
+// 初期処理
+// ========================
+
+loadSavedScans();
+
 
 if (!hasScanSession) {
 
   document
-    .getElementById('message')
+    .getElementById(
+      'message'
+    )
     .textContent =
-    'GASの出席管理画面から' +
+    'GASの出席管理画面から\n' +
     'QRスキャナーを開始してください。';
 
 
   document
-    .getElementById('startButton')
+    .getElementById(
+      'startButton'
+    )
     .disabled = true;
 
 }
-  
+
 </script>
 
 </body>
