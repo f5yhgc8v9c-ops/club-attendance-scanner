@@ -848,7 +848,18 @@ function playBeep() {
 // 初期処理
 // ========================
 
-loadSavedScans();
+// ========================
+// 新しいQR読み取り開始時は
+// 前回の結果を消去
+// ========================
+
+scannedStudents = [];
+
+sessionStorage.removeItem(
+  'clubAttendanceScans'
+);
+
+updateDisplay();
 
 
 if (!hasScanSession) {
