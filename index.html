@@ -10,128 +10,412 @@
     content="width=device-width, initial-scale=1">
 
   <title>
-    カメラテスト
+    QR読み取りテスト
   </title>
+
+  <script
+    src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js">
+  </script>
 
   <style>
 
     body {
-      font-family: sans-serif;
       margin: 0;
-      padding: 20px;
-      text-align: center;
+      font-family:
+        Arial,
+        sans-serif;
+
+      background: #f4f6f8;
+      color: #222;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 16px;
     }
 
     h1 {
+      text-align: center;
       font-size: 26px;
+    }
+
+    #reader {
+      width: 100%;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
     }
 
     button {
       width: 100%;
-      max-width: 500px;
       padding: 18px;
-      margin: 20px 0;
+      margin-bottom: 15px;
+      border: none;
+      border-radius: 10px;
       font-size: 20px;
     }
 
-    video {
-      width: 100%;
-      max-width: 600px;
-      background: #000;
-      border-radius: 12px;
+    #startButton {
+      background: #1976d2;
+      color: white;
     }
 
-    #message {
-      margin: 15px 0;
-      font-size: 18px;
+    .message {
+      min-height: 60px;
+      margin-top: 15px;
+      padding: 15px;
+      background: white;
+      border-radius: 12px;
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
       white-space: pre-line;
+    }
+
+    .result {
+      margin-top: 15px;
+      padding: 20px;
+      background: white;
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .result-title {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 10px;
+    }
+
+    #resultText {
+      font-size: 30px;
+      font-weight: bold;
+    }
+
+    #count {
+      margin-top: 10px;
+      font-size: 16px;
     }
 
   </style>
 
 </head>
 
+
 <body>
 
+<div class="container">
+
   <h1>
-    カメラ起動テスト
+    QR読み取りテスト
   </h1>
 
-  <p>
-    下のボタンを押してください。
-  </p>
 
-  <button onclick="startCamera()">
+  <button
+    id="startButton"
+    onclick="startScanner()">
+
     カメラを開始
+
   </button>
 
-  <div id="message">
-    カメラはまだ起動していません。
+
+  <div id="reader"></div>
+
+
+  <div
+    id="message"
+    class="message">
+
+    「カメラを開始」を押してください。
+
   </div>
 
-  <video
-    id="video"
-    autoplay
-    playsinline>
-  </video>
+
+  <div class="result">
+
+    <div class="result-title">
+      最後に読み取ったQR
+    </div>
+
+    <div id="resultText">
+      ―
+    </div>
+
+    <div id="count">
+      読み取り回数：0
+    </div>
+
+  </div>
+
+</div>
 
 
-  <script>
+<script>
 
-    async function startCamera() {
+let scanner = null;
 
-      const message =
-        document.getElementById(
-          'message'
-        );
+let scannerStarted = false;
 
-      const video =
-        document.getElementById(
-          'video'
-        );
+let scanningLocked = false;
+
+let readCount = 0;
 
 
-      message.textContent =
-        'カメラを起動しています...';
+// ========================
+// カメラ開始
+// ========================
+
+async function startScanner() {
+
+  if (scannerStarted) {
+    return;
+  }
 
 
-      try {
+  const button =
+    document.getElementById(
+      'startButton'
+    );
 
-        const stream =
-          await navigator.mediaDevices
-            .getUserMedia({
-
-              video: {
-                facingMode:
-                  'environment'
-              },
-
-              audio: false
-            });
+  const message =
+    document.getElementById(
+      'message'
+    );
 
 
-        video.srcObject =
-          stream;
+  button.disabled = true;
+
+  button.textContent =
+    'カメラを起動中...';
+
+  message.textContent =
+    'カメラを起動しています...';
 
 
-        message.textContent =
-          'カメラを起動できました。';
+  try {
 
-      }
+    const cameras =
+      await Html5Qrcode.getCameras();
 
-      catch (error) {
 
-        message.textContent =
-          'カメラを起動できませんでした。\n' +
-          error.name +
-          '\n' +
-          error.message;
+    if (
+      !cameras ||
+      cameras.length === 0
+    ) {
 
-        console.error(error);
+      throw new Error(
+        '利用可能なカメラがありません。'
+      );
+    }
+
+
+    scanner =
+      new Html5Qrcode(
+        'reader'
+      );
+
+
+    // 基本的に最後のカメラを使用
+    // iPhone / iPadでは背面カメラになることが多い
+    let cameraId =
+      cameras[
+        cameras.length - 1
+      ].id;
+
+
+    // カメラ名から背面を探す
+    for (
+      let i = 0;
+      i < cameras.length;
+      i++
+    ) {
+
+      const label =
+        String(
+          cameras[i].label || ''
+        ).toLowerCase();
+
+
+      if (
+        label.includes('back') ||
+        label.includes('rear') ||
+        label.includes('environment') ||
+        label.includes('背面')
+      ) {
+
+        cameraId =
+          cameras[i].id;
+
+        break;
       }
     }
 
-  </script>
+
+    const config = {
+
+      fps: 15,
+
+      qrbox: function(
+        viewfinderWidth,
+        viewfinderHeight
+      ) {
+
+        const size =
+          Math.min(
+            viewfinderWidth,
+            viewfinderHeight
+          ) * 0.65;
+
+
+        return {
+
+          width:
+            Math.floor(size),
+
+          height:
+            Math.floor(size)
+        };
+      },
+
+      aspectRatio: 1.0
+    };
+
+
+    await scanner.start(
+
+      cameraId,
+
+      config,
+
+      onScanSuccess,
+
+      function() {
+
+        // QRが見つからない間の
+        // エラーは表示しない
+
+      }
+    );
+
+
+    scannerStarted = true;
+
+    button.style.display =
+      'none';
+
+    message.textContent =
+      'QRコードを読み取ってください。';
+
+  }
+
+  catch (error) {
+
+    button.disabled = false;
+
+    button.textContent =
+      'カメラを開始';
+
+    message.textContent =
+      'カメラを開始できませんでした。\n' +
+      error.name +
+      '\n' +
+      error.message;
+
+    console.error(error);
+  }
+}
+
+
+// ========================
+// QR読み取り成功
+// ========================
+
+function onScanSuccess(
+  decodedText
+) {
+
+  if (scanningLocked) {
+    return;
+  }
+
+
+  scanningLocked = true;
+
+
+  const text =
+    String(
+      decodedText
+    ).trim();
+
+
+  readCount++;
+
+
+  document
+    .getElementById(
+      'resultText'
+    )
+    .textContent =
+    text;
+
+
+  document
+    .getElementById(
+      'count'
+    )
+    .textContent =
+    '読み取り回数：' +
+    readCount;
+
+
+  // 生徒ID形式の簡易確認
+  if (
+    /^N\d{5}$/.test(text)
+  ) {
+
+    document
+      .getElementById(
+        'message'
+      )
+      .textContent =
+      '読み取り成功：' +
+      text;
+
+  }
+
+  else {
+
+    document
+      .getElementById(
+        'message'
+      )
+      .textContent =
+      'QRを読み取りました。\n' +
+      '生徒ID形式ではありません。';
+  }
+
+
+  // 1.5秒後に次の読み取りを許可
+  setTimeout(
+    function() {
+
+      scanningLocked =
+        false;
+
+      document
+        .getElementById(
+          'message'
+        )
+        .textContent =
+        '次のQRコードを読み取ってください。';
+
+    },
+    1500
+  );
+}
+
+</script>
 
 </body>
 
