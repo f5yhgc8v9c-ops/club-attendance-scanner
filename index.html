@@ -84,6 +84,11 @@
       background: #eee;
     }
 
+    #backButton {
+      background: #555;
+      color: white;
+    }
+
     #reader {
       width: 100%;
       margin-bottom: 15px;
@@ -171,6 +176,13 @@
 
   </button>
 
+  <button
+  id="backButton"
+  onclick="backToTop()">
+
+    出席管理トップへ戻る
+
+  </button>
 
   <div class="listBox">
 
@@ -738,6 +750,81 @@ function finishScanning() {
 
   }
 }
+
+function backToTop() {
+
+  // ------------------------
+  // 読み取り済みデータがある場合
+  // ------------------------
+
+  if (
+    scannedStudents.length > 0
+  ) {
+
+    const ok =
+      confirm(
+        scannedStudents.length +
+        '人の読み取り結果があります。\n\n' +
+        '出席登録せずにトップ画面へ戻りますか？'
+      );
+
+
+    if (!ok) {
+      return;
+    }
+
+  }
+
+
+  // ------------------------
+  // 一時保存データを消去
+  // ------------------------
+
+  scannedStudents = [];
+
+
+  sessionStorage.removeItem(
+    'clubAttendanceScans'
+  );
+
+
+  // ------------------------
+  // カメラを停止して戻る
+  // ------------------------
+
+  if (
+    scanner &&
+    scannerStarted
+  ) {
+
+    scanner
+      .stop()
+      .then(
+        function() {
+
+          window.location.href =
+            GAS_WEB_APP_URL;
+
+        }
+      )
+      .catch(
+        function() {
+
+          window.location.href =
+            GAS_WEB_APP_URL;
+
+        }
+      );
+
+  }
+
+  else {
+
+    window.location.href =
+      GAS_WEB_APP_URL;
+
+  }
+}
   
 function clearScans() {
 
@@ -848,7 +935,18 @@ function playBeep() {
 // 初期処理
 // ========================
 
-loadSavedScans();
+// ========================
+// 新しいQR読み取り開始時は
+// 前回の結果を消去
+// ========================
+
+scannedStudents = [];
+
+sessionStorage.removeItem(
+  'clubAttendanceScans'
+);
+
+updateDisplay();
 
 
 if (!hasScanSession) {
