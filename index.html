@@ -378,16 +378,40 @@ async function startScanner() {
   
   if (!hasScanSession) {
 
-    document
-      .getElementById(
-        'message'
-      )
-      .textContent =
-      'GASの出席管理画面から\n' +
-      'QRスキャナーを開始してください。';
+  document
+    .getElementById(
+      'message'
+    )
+    .textContent =
+    'GASの出席管理画面から\n' +
+    'QRスキャナーを開始してください。';
 
-    return;
-  }
+  document
+    .getElementById(
+      'startButton'
+    )
+    .disabled = true;
+
+}
+else {
+
+  document
+    .getElementById(
+      'message'
+    )
+    .textContent =
+    'カメラを準備しています...';
+
+  setTimeout(
+    function() {
+
+      startScanner();
+
+    },
+    500
+  );
+
+}
 
 
   if (scannerStarted) {
@@ -788,7 +812,6 @@ function finishScanning() {
 function backToTop() {
 
   if (scannedStudents.length > 0) {
-
     const ok = confirm(
       scannedStudents.length +
       '人の読み取り結果があります。\n\n' +
@@ -808,28 +831,18 @@ function backToTop() {
 
     scanner.stop()
       .then(function() {
-
-        scannerStarted = false;
-
-        window.location.replace(
-          GAS_WEB_APP_URL
-        );
-
+        window.location.href =
+          GAS_WEB_APP_URL;
       })
       .catch(function() {
-
-        window.location.replace(
-          GAS_WEB_APP_URL
-        );
-
+        window.location.href =
+          GAS_WEB_APP_URL;
       });
 
-  }
-  else {
+  } else {
 
-    window.location.replace(
-      GAS_WEB_APP_URL
-    );
+    window.location.href =
+      GAS_WEB_APP_URL;
 
   }
 }
