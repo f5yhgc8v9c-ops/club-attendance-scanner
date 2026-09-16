@@ -203,6 +203,28 @@
 
 <script>
 
+  window.addEventListener(
+    'pageshow',
+    function(event) {
+
+      const count =
+        Number(
+          sessionStorage.getItem(
+            'pageShowCount'
+          )  || '0'
+        ) + 1;
+
+      sessionStorage.setItem(
+        'pageShowCount',
+        String(count)
+      );
+
+      document.title =
+        'QRスキャナー [' +
+        count +
+        ']';
+    }
+  );
 // ========================
 // GASから受け取った
 // 一時セッション
