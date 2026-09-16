@@ -208,30 +208,7 @@
 // ページ読込方法を表示
 // ========================
 
-window.addEventListener(
-  'load',
-  function() {
 
-    const entries =
-      performance.getEntriesByType(
-        'navigation'
-      );
-
-    let type =
-      '不明';
-
-    if (
-      entries &&
-      entries.length > 0
-    ) {
-      type =
-        entries[0].type;
-    }
-
-    document.title =
-      'QR [' + type + ']';
-  }
-);
 // ========================
 // GASから受け取った
 // 一時セッション
@@ -1018,14 +995,32 @@ if (!hasScanSession) {
     )
     .textContent =
     'GASの出席管理画面から\n' +
-    'QRスキャナーを開始してください。';
-
+    'QRスキャナーを開始してください.';
 
   document
     .getElementById(
       'startButton'
     )
     .disabled = true;
+
+}
+else {
+
+  document
+    .getElementById(
+      'message'
+    )
+    .textContent =
+    'カメラを準備しています...';
+
+  setTimeout(
+    function() {
+
+      startScanner();
+
+    },
+    500
+  );
 
 }
 
