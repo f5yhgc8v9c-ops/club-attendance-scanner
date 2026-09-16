@@ -805,6 +805,7 @@ function backToTop() {
   }
 
 
+  // 読み取り結果を消去
   scannedStudents = [];
 
   sessionStorage.removeItem(
@@ -813,45 +814,10 @@ function backToTop() {
 
 
   // ========================
-  // GitHubタブを閉じる
+  // GitHubタブをその場で閉じる
   // ========================
 
-  function closeScannerTab() {
-
-    window.close();
-
-  }
-
-
-  // カメラ起動中の場合は
-  // 停止してからタブを閉じる
-  if (
-    scanner &&
-    scannerStarted
-  ) {
-
-    scanner.stop()
-      .then(function() {
-
-        scannerStarted = false;
-
-        closeScannerTab();
-
-      })
-      .catch(function() {
-
-        scannerStarted = false;
-
-        closeScannerTab();
-
-      });
-
-  }
-  else {
-
-    closeScannerTab();
-
-  }
+  window.close();
 
 }
   
