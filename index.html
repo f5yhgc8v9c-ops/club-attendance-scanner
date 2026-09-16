@@ -944,6 +944,45 @@ else {
 
 }
 
+// ========================
+// iPad Safari 診断
+// ========================
+
+window.addEventListener(
+  'pageshow',
+  function(event) {
+
+    const navEntries =
+      performance.getEntriesByType(
+        'navigation'
+      );
+
+    const navType =
+      navEntries.length > 0
+        ? navEntries[0].type
+        : 'unknown';
+
+    const message =
+      document.getElementById(
+        'message'
+      );
+
+    const currentText =
+      message.textContent;
+
+    message.textContent =
+      currentText +
+      '\n\n【診断】' +
+      '\npersisted=' +
+      event.persisted +
+      '\nnav=' +
+      navType +
+      '\nhistory=' +
+      window.history.length;
+
+  }
+);
+
 </script>
 
 </body>
