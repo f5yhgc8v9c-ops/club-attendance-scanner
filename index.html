@@ -751,44 +751,12 @@ function finishScanning() {
 
 
   // ========================
-  // カメラ停止後にGASへ移動
+  // そのままGAS確認画面へ移動
   // ========================
 
-  if (
-    scanner &&
-    scannerStarted
-  ) {
+  window.location.href =
+    url;
 
-    scanner
-      .stop()
-      .then(
-        function() {
-
-          window.location.href =
-            url;
-
-        }
-      )
-      .catch(
-        function() {
-
-          // カメラ停止に失敗しても
-          // GASへの移動は行う
-
-          window.location.href =
-            url;
-
-        }
-      );
-
-  }
-
-  else {
-
-    window.location.href =
-      url;
-
-  }
 }
 
 function backToTop() {
