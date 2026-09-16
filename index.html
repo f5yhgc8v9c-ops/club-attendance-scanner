@@ -206,7 +206,6 @@
 
 let scanSessionToken = '';
 
-
 function loadScanSession() {
 
   const hash =
@@ -219,14 +218,25 @@ function loadScanSession() {
         : hash
     );
 
-
-  scanSessionToken =
+  const receivedToken =
     String(
       params.get('session') || ''
     ).trim();
 
 
-  if (scanSessionToken) {
+  // GASから新しいセッションを
+  // 受け取った場合
+  if (receivedToken) {
+
+    scanSessionToken =
+      receivedToken;
+
+    // iPadでページが再読み込みされても
+    // セッションを失わないよう保存
+    sessionStorage.setItem(
+      'clubAttendanceScanSession',
+      scanSessionToken
+    );
 
     // URL欄からtokenを消す
     history.replaceState(
@@ -235,10 +245,31 @@ function loadScanSession() {
       window.location.pathname
     );
 
+    return true;
   }
 
 
-  return !!scanSessionToken;
+  // URLにセッションがない場合は
+  // 保存済みセッションを確認
+  const savedToken =
+    String(
+      sessionStorage.getItem(
+        'clubAttendanceScanSession'
+      ) || ''
+    ).trim();
+
+  if (savedToken) {
+
+    scanSessionToken =
+      savedToken;
+
+    return true;
+  }
+
+
+  scanSessionToken = '';
+
+  return false;
 }
 
 
@@ -786,6 +817,10 @@ function backToTop() {
   sessionStorage.removeItem(
     'clubAttendanceScans'
   );
+
+  sessionStorage.removeItem(
+  'clubAttendanceScanSession'
+);
 
 
   // ------------------------
