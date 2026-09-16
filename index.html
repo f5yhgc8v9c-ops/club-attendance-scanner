@@ -245,20 +245,6 @@ function loadScanSession() {
 const hasScanSession =
   loadScanSession();
 
-  // ========================
-// 一時診断用
-// セッション受信確認
-// ========================
-
-alert(
-  'セッション診断\n\n' +
-  '受信結果：' +
-  (hasScanSession ? 'あり' : 'なし') +
-  '\n\n' +
-  'token文字数：' +
-  scanSessionToken.length
-);
-
 
 // ========================
 // QRスキャナー
