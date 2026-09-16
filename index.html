@@ -794,6 +794,7 @@ function finishScanning() {
 function backToTop() {
 
   if (scannedStudents.length > 0) {
+
     const ok = confirm(
       scannedStudents.length +
       '人の読み取り結果があります。\n\n' +
@@ -803,30 +804,55 @@ function backToTop() {
     if (!ok) return;
   }
 
+
   scannedStudents = [];
 
   sessionStorage.removeItem(
     'clubAttendanceScans'
   );
 
-  if (scanner && scannerStarted) {
+
+  // ========================
+  // GitHubタブを閉じる
+  // ========================
+
+  function closeScannerTab() {
+
+    window.close();
+
+  }
+
+
+  // カメラ起動中の場合は
+  // 停止してからタブを閉じる
+  if (
+    scanner &&
+    scannerStarted
+  ) {
 
     scanner.stop()
       .then(function() {
-        window.location.href =
-          GAS_WEB_APP_URL;
+
+        scannerStarted = false;
+
+        closeScannerTab();
+
       })
       .catch(function() {
-        window.location.href =
-          GAS_WEB_APP_URL;
+
+        scannerStarted = false;
+
+        closeScannerTab();
+
       });
 
-  } else {
+  }
+  else {
 
-    window.location.href =
-      GAS_WEB_APP_URL;
+    closeScannerTab();
 
   }
+
 }
   
 function clearScans() {
