@@ -795,19 +795,8 @@ function backToTop() {
       '出席登録せずにトップ画面へ戻りますか？'
     );
 
-    if (!ok) {
-      return;
-    }
+    if (!ok) return;
   }
-
-
-  // トップへ戻るため、
-  // このページではカメラを再起動させない
-  sessionStorage.setItem(
-    'clubAttendanceLeavingScanner',
-    '1'
-  );
-
 
   scannedStudents = [];
 
@@ -815,37 +804,32 @@ function backToTop() {
     'clubAttendanceScans'
   );
 
-
-  if (
-    scanner &&
-    scannerStarted
-  ) {
+  if (scanner && scannerStarted) {
 
     scanner.stop()
-
       .then(function() {
 
         scannerStarted = false;
 
-        window.location.href =
-          GAS_WEB_APP_URL;
+        window.location.replace(
+          GAS_WEB_APP_URL
+        );
 
       })
-
       .catch(function() {
 
-        scannerStarted = false;
-
-        window.location.href =
-          GAS_WEB_APP_URL;
+        window.location.replace(
+          GAS_WEB_APP_URL
+        );
 
       });
 
   }
   else {
 
-    window.location.href =
-      GAS_WEB_APP_URL;
+    window.location.replace(
+      GAS_WEB_APP_URL
+    );
 
   }
 }
@@ -1008,25 +992,23 @@ else {
   }
   else {
 
-    document
-      .getElementById(
-        'message'
-      )
-      .textContent =
-      'カメラを準備しています...';
+  document
+    .getElementById(
+      'message'
+    )
+    .textContent =
+    'カメラを準備しています...';
 
-    setTimeout(
-      function() {
+  setTimeout(
+    function() {
 
-        startScanner();
+      startScanner();
 
-      },
-      500
-    );
+    },
+    500
+  );
 
-  }
 }
-
 </script>
 
 </body>
