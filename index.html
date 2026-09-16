@@ -163,10 +163,9 @@
 
   <button
     type="button"
-    id="finishButton"
-    onclick="finishScanning()">
+    id="finishButton">
 
-  読み取り終了・出席登録へ進む
+    読み取り終了・出席登録へ進む
 
   </button>
 
@@ -754,12 +753,31 @@ function finishScanning() {
   // そのままGAS確認画面へ移動
   // ========================
 
-  alert('これからGAS確認画面へ移動します');
   
   window.location.href =
     url;
 
 }
+
+// ========================
+// iPad用 読み取り終了ボタン
+// ========================
+
+document
+  .getElementById(
+    'finishButton'
+  )
+  .addEventListener(
+    'touchend',
+    function(event) {
+
+      event.preventDefault();
+
+      finishScanning();
+
+    },
+    { passive: false }
+  );
 
 function backToTop() {
 
