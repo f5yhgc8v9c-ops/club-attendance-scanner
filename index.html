@@ -264,13 +264,6 @@ function loadScanSession() {
       scanSessionToken
     );
 
-    // URL欄からtokenを消す
-    history.replaceState(
-      null,
-      '',
-      window.location.pathname
-    );
-
     return true;
   }
 
