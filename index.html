@@ -203,28 +203,35 @@
 
 <script>
 
-  window.addEventListener(
-    'pageshow',
-    function(event) {
+  // ========================
+// 一時診断用
+// ページ読込方法を表示
+// ========================
 
-      const count =
-        Number(
-          sessionStorage.getItem(
-            'pageShowCount'
-          )  || '0'
-        ) + 1;
+window.addEventListener(
+  'load',
+  function() {
 
-      sessionStorage.setItem(
-        'pageShowCount',
-        String(count)
+    const entries =
+      performance.getEntriesByType(
+        'navigation'
       );
 
-      document.title =
-        'QRスキャナー [' +
-        count +
-        ']';
+    let type =
+      '不明';
+
+    if (
+      entries &&
+      entries.length > 0
+    ) {
+      type =
+        entries[0].type;
     }
-  );
+
+    document.title =
+      'QR [' + type + ']';
+  }
+);
 // ========================
 // GASから受け取った
 // 一時セッション
