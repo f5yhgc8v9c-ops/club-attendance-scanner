@@ -787,75 +787,61 @@ function finishScanning() {
 
 function backToTop() {
 
-  // ------------------------
-  // 読み取り済みデータがある場合
-  // ------------------------
+  if (scannedStudents.length > 0) {
 
-  if (
-    scannedStudents.length > 0
-  ) {
-
-    const ok =
-      confirm(
-        scannedStudents.length +
-        '人の読み取り結果があります。\n\n' +
-        '出席登録せずにトップ画面へ戻りますか？'
-      );
-
+    const ok = confirm(
+      scannedStudents.length +
+      '人の読み取り結果があります。\n\n' +
+      '出席登録せずにトップ画面へ戻りますか？'
+    );
 
     if (!ok) {
       return;
     }
-
   }
 
 
-  // ------------------------
-  // 一時保存データを消去
-  // ------------------------
+  // トップへ戻るため、
+  // このページではカメラを再起動させない
+  sessionStorage.setItem(
+    'clubAttendanceLeavingScanner',
+    '1'
+  );
+
 
   scannedStudents = [];
-
 
   sessionStorage.removeItem(
     'clubAttendanceScans'
   );
 
-  sessionStorage.removeItem(
-  'clubAttendanceScanSession'
-);
-
-
-  // ------------------------
-  // カメラを停止して戻る
-  // ------------------------
 
   if (
     scanner &&
     scannerStarted
   ) {
 
-    scanner
-      .stop()
-      .then(
-        function() {
+    scanner.stop()
 
-          window.location.href =
-            GAS_WEB_APP_URL;
+      .then(function() {
 
-        }
-      )
-      .catch(
-        function() {
+        scannerStarted = false;
 
-          window.location.href =
-            GAS_WEB_APP_URL;
+        window.location.href =
+          GAS_WEB_APP_URL;
 
-        }
-      );
+      })
+
+      .catch(function() {
+
+        scannerStarted = false;
+
+        window.location.href =
+          GAS_WEB_APP_URL;
+
+      });
 
   }
-
   else {
 
     window.location.href =
@@ -1006,22 +992,39 @@ if (!hasScanSession) {
 }
 else {
 
-  document
-    .getElementById(
-      'message'
-    )
-    .textContent =
-    'カメラを準備しています...';
+  const leavingScanner =
+    sessionStorage.getItem(
+      'clubAttendanceLeavingScanner'
+    );
 
-  setTimeout(
-    function() {
+  if (leavingScanner === '1') {
 
-      startScanner();
+    // トップへ戻る途中なので
+    // カメラは起動しない
+    sessionStorage.removeItem(
+      'clubAttendanceLeavingScanner'
+    );
 
-    },
-    500
-  );
+  }
+  else {
 
+    document
+      .getElementById(
+        'message'
+      )
+      .textContent =
+      'カメラを準備しています...';
+
+    setTimeout(
+      function() {
+
+        startScanner();
+
+      },
+      500
+    );
+
+  }
 }
 
 </script>
