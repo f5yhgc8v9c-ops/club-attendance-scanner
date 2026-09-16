@@ -163,11 +163,13 @@
 
   <button
     type="button"
-    id="finishButton">
+    id="finishButton"
+    onclick="finishScanning()">
 
     読み取り終了・出席登録へ進む
 
   </button>
+
 
   <button
     type="button"
@@ -233,54 +235,24 @@ function loadScanSession() {
     ).trim();
 
 
-  // ========================
-  // URLにセッションがある場合
-  // ========================
-
+  // GASからセッションを
+  // 受け取った場合
   if (receivedToken) {
 
     scanSessionToken =
       receivedToken;
 
-
-    // 前回保存されていたセッション
-    const savedToken =
-      String(
-        sessionStorage.getItem(
-          'clubAttendanceScanSession'
-        ) || ''
-      ).trim();
-
-
-    // GASから新しいセッションを
-    // 受け取った場合
-    if (
-      savedToken !== receivedToken
-    ) {
-
-      sessionStorage.setItem(
-        'clubAttendanceScanSession',
-        receivedToken
-      );
-
-      // この新しいセッションでは
-      // まだ自動リロードしていない
-      sessionStorage.removeItem(
-        'clubAttendanceScannerReloaded'
-      );
-
-    }
-
+    sessionStorage.setItem(
+      'clubAttendanceScanSession',
+      scanSessionToken
+    );
 
     return true;
   }
 
 
-  // ========================
-  // URLにセッションがない場合
+  // URLにセッションがない場合は
   // 保存済みセッションを確認
-  // ========================
-
   const savedToken =
     String(
       sessionStorage.getItem(
@@ -303,41 +275,7 @@ function loadScanSession() {
   return false;
 }
 
-
-const hasScanSession =
-  loadScanSession();
-
-// ========================
-// iPad初回表示対策
-// セッションごとに1回だけ
-// 自動リロード
-// ========================
-
-if (hasScanSession) {
-
-  const reloadedToken =
-    String(
-      sessionStorage.getItem(
-        'clubAttendanceScannerReloaded'
-      ) || ''
-    ).trim();
-
-
-  if (
-    reloadedToken !==
-    scanSessionToken
-  ) {
-
-    sessionStorage.setItem(
-      'clubAttendanceScannerReloaded',
-      scanSessionToken
-    );
-
-    window.location.reload();
-
-  }
-
-}
+const hasScanSession =loadScanSession();
 
 
 // ========================
@@ -819,26 +757,6 @@ function finishScanning() {
     url;
 
 }
-
-// ========================
-// iPad用 読み取り終了ボタン
-// ========================
-
-document
-  .getElementById(
-    'finishButton'
-  )
-  .addEventListener(
-    'touchend',
-    function(event) {
-
-      event.preventDefault();
-
-      finishScanning();
-
-    },
-    { passive: false }
-  );
 
 function backToTop() {
 
