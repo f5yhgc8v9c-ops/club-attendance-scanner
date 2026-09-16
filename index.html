@@ -375,43 +375,25 @@ function saveScans() {
 // ========================
 
 async function startScanner() {
-  
+
   if (!hasScanSession) {
 
-  document
-    .getElementById(
-      'message'
-    )
-    .textContent =
-    'GASの出席管理画面から\n' +
-    'QRスキャナーを開始してください。';
+    document
+      .getElementById(
+        'message'
+      )
+      .textContent =
+      'GASの出席管理画面から\n' +
+      'QRスキャナーを開始してください。';
 
-  document
-    .getElementById(
-      'startButton'
-    )
-    .disabled = true;
+    document
+      .getElementById(
+        'startButton'
+      )
+      .disabled = true;
 
-}
-else {
-
-  document
-    .getElementById(
-      'message'
-    )
-    .textContent =
-    'カメラを準備しています...';
-
-  setTimeout(
-    function() {
-
-      startScanner();
-
-    },
-    500
-  );
-
-}
+    return;
+  }
 
 
   if (scannerStarted) {
@@ -951,16 +933,12 @@ function playBeep() {
 
 }
 
-
 // ========================
 // 初期処理
 // ========================
 
-// ========================
 // 新しいQR読み取り開始時は
-// 前回の結果を消去
-// ========================
-
+// 前回の読み取り結果を消去
 scannedStudents = [];
 
 sessionStorage.removeItem(
@@ -978,7 +956,7 @@ if (!hasScanSession) {
     )
     .textContent =
     'GASの出席管理画面から\n' +
-    'QRスキャナーを開始してください.';
+    'QRスキャナーを開始してください。';
 
   document
     .getElementById(
@@ -988,22 +966,6 @@ if (!hasScanSession) {
 
 }
 else {
-
-  const leavingScanner =
-    sessionStorage.getItem(
-      'clubAttendanceLeavingScanner'
-    );
-
-  if (leavingScanner === '1') {
-
-    // トップへ戻る途中なので
-    // カメラは起動しない
-    sessionStorage.removeItem(
-      'clubAttendanceLeavingScanner'
-    );
-
-  }
-  else {
 
   document
     .getElementById(
@@ -1022,6 +984,7 @@ else {
   );
 
 }
+
 </script>
 
 </body>
