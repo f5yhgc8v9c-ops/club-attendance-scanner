@@ -146,15 +146,6 @@
       「カメラを開始」を押してください。
     </div>
 
-    <div
-      id="loadTest"
-      style="
-        margin-top: 10px;
-        font-size: 16px;
-        color: #555;
-      ">
-    </div>
-
   </div>
 
 
@@ -163,7 +154,7 @@
     id="startButton"
     onclick="startScanner()">
 
-    カメラを開始
+      QR読み取りを開始
 
   </button>
 
@@ -287,31 +278,27 @@ function loadScanSession() {
 const hasScanSession =loadScanSession();
 
 // ========================
-// iPad表示回数テスト
+// 現在のスキャンセッションの
+// GitHub表示回数
 // ========================
+
+const loadCountKey =
+  'clubAttendanceLoadCount_' +
+  scanSessionToken;
 
 let loadCount =
   Number(
     sessionStorage.getItem(
-      'clubAttendanceLoadCount'
+      loadCountKey
     ) || '0'
   );
 
 loadCount++;
 
 sessionStorage.setItem(
-  'clubAttendanceLoadCount',
+  loadCountKey,
   String(loadCount)
 );
-
-document
-  .getElementById(
-    'loadTest'
-  )
-  .textContent =
-  '表示テスト：' +
-  loadCount +
-  '回目';
 
 // ========================
 // QRスキャナー
@@ -941,7 +928,6 @@ sessionStorage.removeItem(
 
 updateDisplay();
 
-
 if (!hasScanSession) {
 
   document
@@ -950,7 +936,7 @@ if (!hasScanSession) {
     )
     .textContent =
     'GASの出席管理画面から\n' +
-    'QRスキャナーを開始してください。';
+    'QRスキャナーを開始してください.';
 
   document
     .getElementById(
@@ -959,16 +945,54 @@ if (!hasScanSession) {
     .disabled = true;
 
 }
-else {
+else if (loadCount === 1) {
+
+  // ========================
+  // iPad Safari 初回表示
+  // 最初の操作をここで受ける
+  // ========================
 
   document
     .getElementById(
       'message'
     )
     .textContent =
-    '「カメラを開始」を押してください。';
+    '準備ができました。\n' +
+    '「QR読み取りを開始」を押してください。';
 
 }
+else {
+
+  // ========================
+  // 再表示後
+  // カメラを自動起動
+  // ========================
+
+  document
+    .getElementById(
+      'message'
+    )
+    .textContent =
+    'カメラを準備しています...';
+
+  document
+    .getElementById(
+      'startButton'
+    )
+    .textContent =
+    'カメラを開始';
+
+  setTimeout(
+    function() {
+
+      startScanner();
+
+    },
+    500
+  );
+
+}
+
 
 // ========================
 // iPad Safari 診断
