@@ -146,6 +146,15 @@
       「カメラを開始」を押してください。
     </div>
 
+    <div
+      id="loadTest"
+      style="
+        margin-top: 10px;
+        font-size: 16px;
+        color: #555;
+      ">
+    </div>
+
   </div>
 
 
@@ -277,6 +286,32 @@ function loadScanSession() {
 
 const hasScanSession =loadScanSession();
 
+// ========================
+// iPad表示回数テスト
+// ========================
+
+let loadCount =
+  Number(
+    sessionStorage.getItem(
+      'clubAttendanceLoadCount'
+    ) || '0'
+  );
+
+loadCount++;
+
+sessionStorage.setItem(
+  'clubAttendanceLoadCount',
+  String(loadCount)
+);
+
+document
+  .getElementById(
+    'loadTest'
+  )
+  .textContent =
+  '表示テスト：' +
+  loadCount +
+  '回目';
 
 // ========================
 // QRスキャナー
